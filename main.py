@@ -124,6 +124,10 @@ class MainWindow(Tk):
             for sock in read_sockets:
                 if sock == s:
                     data = sock.recv(1024)
+                    try:
+                        data = cipher.decrypt(data)
+                    except Exception:
+                        pass
                     if not data:
                         self.options['chatbox'].insert('1.0', 'Disconnected from server\n')
                         sys.exit(1)

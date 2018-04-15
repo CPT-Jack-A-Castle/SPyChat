@@ -68,14 +68,14 @@ def server(host, port):
                         if data.split('$')[0] == 'USER':
                             username = data.split('$')[1]
                             message = '%s entered the server with id %s' % (username, addr[1])
-                            broadcast(server_socket, sockfd, message)
+                            broadcast(server_socket, sockfd, cipher.encrypt(message))
 
                     elif data:
                         data = data.strip()
                         # Send data to all clients
                         #message = '\r[%s] %s' % (time.strftime('%X'), data)
                         message = '\r%s' % data
-                        broadcast(server_socket, sock, message)
+                        broadcast(server_socket, sock, cipher.encrypt(message))
 
                     else:
                         # remove the socket that's broken
@@ -83,11 +83,11 @@ def server(host, port):
                             SOCKET_LIST.remove(sock)
 
                         # at this stage, no data means probably the connection has been broken
-                        broadcast(server_socket, sock, "Client [%s] left\n" % addr[1])
+                        broadcast(server_socket, sock, cipher.encrypt("Client [%s] left\n") % addr[1])
 
                 # exception
                 except:
-                    broadcast(server_socket, sock, "Client [%s] left\n" % addr[1])
+                    broadcast(server_socket, sock, cipher.encrypt("Client [%s] left\n") % addr[1])
                     continue
 
     server_socket.close()
