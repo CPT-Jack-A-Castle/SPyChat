@@ -62,7 +62,7 @@ def server(host, port):
                     try:
                         data = cipher.decrypt(data)
                     except Exception:
-                        data = 'Failed to decrypt message'
+                        pass
 
                     if '$' in data:
                         if data.split('$')[0] == 'USER':
