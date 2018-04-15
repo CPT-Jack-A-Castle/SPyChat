@@ -1,4 +1,4 @@
-![alt text](http://leonvoerman.nl/coding/spychat.png)
+![alt text](http://leonvoerman.nl/coding/pychat.png)
 
 # SPyChat (Secure Python Chat)
 SPyChat is a secure chat application that sends out each string encrypted with Python-crypto.
