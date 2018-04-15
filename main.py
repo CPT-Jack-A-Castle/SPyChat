@@ -98,14 +98,6 @@ class MainWindow(Tk):
                     else:
                         # Show data
                         self.options['chatbox'].insert(END, '%s\n' % data.strip())
-                else:
-                    # Send message
-                    message = '[%s] %s ' % (self.options['username'].get(), self.options['chatbar'].get())
-                    self.options['chatbox'].insert(END, '%s \n' % message)
-                    s.send(message) # Send message
-                    self.options['chatbar'].delete(0, END) # Clear chatbar
-
-
 
     def send_message(self, event):
         # Send message
@@ -156,4 +148,4 @@ if __name__ == '__main__':
         main = MainWindow()
         main.mainloop()
     except Exception as e:
-        print('There was an error: %s.\n.' % e)
+        print('There was an error: %s\n' % e)
