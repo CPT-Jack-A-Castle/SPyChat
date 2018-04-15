@@ -11,5 +11,5 @@ Enjoy.
 
 ***
 
-## Created by
+## Made by
 ![alt text](http://leonvoerman.nl/coding/insec_only.png)
