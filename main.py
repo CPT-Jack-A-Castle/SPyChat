@@ -6,7 +6,6 @@ class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.title(string = " << Chat | Free Clear-text version >> ")
-        self.lws = []
 
         self.options = {
             'host' : StringVar(),
@@ -156,5 +155,5 @@ if __name__ == '__main__':
     try:
         main = MainWindow()
         main.mainloop()
-    except Exception as ex:
-        print('There was an error: %s.\nQuitting.' % ex)
+    except Exception as e:
+        print('There was an error: %s.\n.' % e)
