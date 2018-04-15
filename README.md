@@ -1,6 +1,6 @@
 ![alt text](http://leonvoerman.nl/coding/pychat.png)
 
-# PyChat_clear-text-version
+# PyChat (clear-text-version)
 > The free clear-text version of my PyChat application. The secured version is not to be releaed, yet.
 > Enjoy
 
