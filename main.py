@@ -67,9 +67,9 @@ class MainWindow(Tk):
         # Chat Frame
         chat = LabelFrame(self, text = 'Chat', relief = GROOVE)
         chat.grid(row = 3, column = 1, rowspan = 4)
-        self.options['chatbox'] = Text(chat, foreground="black", background="white", highlightcolor="white", highlightbackground="black", wrap=NONE, height = 28, width = 80)
+        self.options['chatbox'] = Text(chat, foreground="black", background="white", highlightcolor="white", highlightbackground="black", height = 28, width = 80)
         self.options['chatbox'].grid(row = 0, column = 1)
-        self.options['chatbox'].insert(END, 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n')
+        self.options['chatbox'].insert('1.0', 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n')
 
         # Connect button
         connect_button = Button(self, text = "Connect!", command = self.connect, width = 70).grid(row = 1, column = 0, columnspan = 2)
@@ -90,7 +90,7 @@ class MainWindow(Tk):
     s.settimeout(2)
 
     def connect(self):
-        self.options['chatbox'].insert(END, 'Attempting to connect as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()))
+        self.options['chatbox'].insert('1.0', 'Attempting to connect as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()))
         global cipher
         cipher = AESCipher(self.options['key'].get()) # Set cipher
 
@@ -106,12 +106,12 @@ class MainWindow(Tk):
 
         try:
             s.connect((self.options['host'].get(), int(self.options['port'].get())))
-            self.options['chatbox'].insert(END, 'Connected, Welcome!\n')
+            self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n')
             connect_button = Button(self, text = "Quit", command = self.exit, width = 70).grid(row = 1, column = 0, columnspan = 2)
             #s.send('USER$%s' % self.options['username'].get())
             s.send(cipher.encrypt('USER$' + self.options['username'].get()))
         except Exception as e:
-            self.options['chatbox'].insert(END, 'Failed to connect: %s\n' % e)
+            self.options['chatbox'].insert('1.0', 'Failed to connect: %s\n' % e)
 
         running = True
 
@@ -125,24 +125,25 @@ class MainWindow(Tk):
                 if sock == s:
                     data = sock.recv(1024)
                     if not data:
-                        self.options['chatbox'].insert(END, 'Disconnected from server\n')
+                        self.options['chatbox'].insert('1.0', 'Disconnected from server\n')
                         sys.exit(1)
                     else:
                         # Show data
-                        self.options['chatbox'].insert(END, '%s\n' % data.strip())
+                        self.options['chatbox'].insert('1.0', '%s\n' % data.strip())
 
     def send_message(self, event):
         # Send message
         message = '[%s] [%s] %s ' % (time.strftime('%X'), self.options['username'].get(), self.options['chatbar'].get())
-        self.options['chatbox'].insert(END, '%s \n' % message)
+        #self.options['chatbox'].insert(END, '%s \n' % message) # Insert on bottom
+        self.options['chatbox'].insert('1.0', '%s\n' % message) # Insert on top
         s.send(cipher.encrypt(message)) # Send message
         #s.send(cipher.encrypt(message))
         self.options['chatbar'].delete(0, END) # Clear chatbar
 
     def host(self):
         key = hashlib.md5(gen_string()).hexdigest()
-        self.options['chatbox'].insert(END, '\nYour key: %s\n' % key)
-        self.options['chatbox'].insert(END, 'Others need this key to connect with your server to secure the connection\n')
+        self.options['chatbox'].insert('1.0', '\nYour key: %s\n' % key)
+        self.options['chatbox'].insert('1.0', 'Others need this key to connect with your server to secure the connection\n')
 
         # Open server
         server = subprocess.Popen(['python ./server.py %s %i %s' % (self.options['host'].get(), int(self.options['port'].get()), key)], stdout=subprocess.PIPE, shell=True)
@@ -170,7 +171,7 @@ class MainWindow(Tk):
             print(e)
             pass
 
-        self.options['chatbox'].insert(END, 'Server closed... Killed PID %i\n' % int(pid[0][-1]))
+        self.options['chatbox'].insert('1.0', 'Server closed... Killed PID %i\n' % int(pid[0][-1]))
 
 # Generate a key for server hosting
 def gen_string(size=32, chars=string.ascii_uppercase + string.digits):
