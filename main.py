@@ -1,11 +1,37 @@
 #!/usr/bin/python
-import os, sys, random, string, hashlib, subprocess, signal, socket, select, threading, time
+import os, sys, random, string, hashlib, subprocess, signal, socket, select, threading, time, base64, time
 from Tkinter import *
+
+try:
+    from Crypto import Random
+    from Crypto.Cipher import AES
+except ImportError:
+    print('Python Crypto is not installed, please do: apt install python-crypto -y\nThen try again'); sys.exit(1)
+
+BS = 256
+pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+unpad = lambda s : s[0:-ord(s[-1])]
+
+class AESCipher:
+    def __init__(self, key ):
+        self.key = key
+
+    def encrypt(self, raw ):
+        raw = pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def decrypt(self, enc ):
+        enc = base64.b64decode(enc)
+        iv = enc[:16]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return unpad(cipher.decrypt( enc[16:]))
 
 class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
-        self.title(string = " << Chat | Free Clear-text version >> ")
+        self.title(string = " << PyChat | Secure version >> ")
 
         self.options = {
             'host' : StringVar(),
@@ -64,7 +90,11 @@ class MainWindow(Tk):
     s.settimeout(2)
 
     def connect(self):
-        self.options['chatbox'].insert(END, 'Connecting as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()))
+        self.options['chatbox'].insert(END, 'Attempting to connect as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()))
+        global cipher
+        cipher = AESCipher(self.options['key'].get()) # Set cipher
+
+        # Start thread
         thread = threading.Thread(target=self.keep_alive)
         thread.daemon = True
         thread.start()
@@ -78,6 +108,8 @@ class MainWindow(Tk):
             s.connect((self.options['host'].get(), int(self.options['port'].get())))
             self.options['chatbox'].insert(END, 'Connected, Welcome!\n')
             connect_button = Button(self, text = "Quit", command = self.exit, width = 70).grid(row = 1, column = 0, columnspan = 2)
+            #s.send('USER$%s' % self.options['username'].get())
+            s.send(cipher.encrypt('USER$' + self.options['username'].get()))
         except Exception as e:
             self.options['chatbox'].insert(END, 'Failed to connect: %s\n' % e)
 
@@ -101,13 +133,14 @@ class MainWindow(Tk):
 
     def send_message(self, event):
         # Send message
-        message = '[%s] %s ' % (self.options['username'].get(), self.options['chatbar'].get())
+        message = '[%s] [%s] %s ' % (time.strftime('%X'), self.options['username'].get(), self.options['chatbar'].get())
         self.options['chatbox'].insert(END, '%s \n' % message)
-        s.send(message) # Send message
+        s.send(cipher.encrypt(message)) # Send message
+        #s.send(cipher.encrypt(message))
         self.options['chatbar'].delete(0, END) # Clear chatbar
 
     def host(self):
-        key = hashlib.sha256(gen_string()).hexdigest()
+        key = hashlib.md5(gen_string()).hexdigest()
         self.options['chatbox'].insert(END, '\nYour key: %s\n' % key)
         self.options['chatbox'].insert(END, 'Others need this key to connect with your server to secure the connection\n')
 

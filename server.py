@@ -1,11 +1,37 @@
 #!/usr/bin/python
-import socket, select, os, sys
+import socket, select, os, sys, time, base64
+from Crypto import Random
+from Crypto.Cipher import AES
 
 if len(sys.argv) < 4:
     print('Usage: python server.py <host> <port> <key>')
     sys.exit(1)
 
 SOCKET_LIST = [] # List with connected sockets
+
+BS = 256
+pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+unpad = lambda s : s[0:-ord(s[-1])]
+
+class AESCipher:
+    def __init__(self, key ):
+        self.key = key
+
+    def encrypt(self, raw ):
+        raw = pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def decrypt(self, enc ):
+        enc = base64.b64decode(enc)
+        iv = enc[:16]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return unpad(cipher.decrypt( enc[16:]))
+
+host = sys.argv[1]
+port = sys.argv[2]
+cipher = AESCipher(sys.argv[3])
 
 def server(host, port):
     running = True
@@ -29,30 +55,39 @@ def server(host, port):
             if sock == server_socket:
                 sockfd, addr = server_socket.accept()
                 SOCKET_LIST.append(sockfd)
-                #print "Client from %s connected" % addr[0]
-
-                broadcast(server_socket, sockfd, "\rA client from [%s] entered our server\n" % addr[0])
 
             else:
                 try:
                     data = sock.recv(1024)
-                    if data:
+                    try:
+                        data = cipher.decrypt(data)
+                    except Exception:
+                        data = 'Failed to decrypt message'
+
+                    if '$' in data:
+                        if data.split('$')[0] == 'USER':
+                            username = data.split('$')[1]
+                            message = '%s entered the server with id %s' % (username, addr[1])
+                            broadcast(server_socket, sockfd, message)
+
+                    elif data:
                         data = data.strip()
                         # Send data to all clients
-                        broadcast(server_socket, sock, '\r' + data)
-                        #print(data.strip())
-                        print('[%s] %s' % (addr[1], data.strip()))
+                        #message = '\r[%s] %s' % (time.strftime('%X'), data)
+                        message = '\r%s' % data
+                        broadcast(server_socket, sock, message)
+
                     else:
                         # remove the socket that's broken
                         if sock in SOCKET_LIST:
                             SOCKET_LIST.remove(sock)
 
                         # at this stage, no data means probably the connection has been broken
-                        broadcast(server_socket, sock, "Client from (%s) left\n" % addr[0])
+                        broadcast(server_socket, sock, "Client [%s] left\n" % addr[1])
 
                 # exception
                 except:
-                    broadcast(server_socket, sock, "Client from (%s) left\n" % addr[0])
+                    broadcast(server_socket, sock, "Client [%s] left\n" % addr[1])
                     continue
 
     server_socket.close()
@@ -70,10 +105,6 @@ def broadcast(server_socket, sock, message):
                 # broken socket, remove it
                 if socket in SOCKET_LIST:
                     SOCKET_LIST.remove(socket)
-
-host = sys.argv[1]
-port = sys.argv[2]
-key = sys.argv[3]
 
 # Start server
 server(host, int(port))
