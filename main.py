@@ -67,9 +67,20 @@ class MainWindow(Tk):
         # Chat Frame
         chat = LabelFrame(self, text = 'Chat', relief = GROOVE)
         chat.grid(row = 3, column = 1, rowspan = 4)
-        self.options['chatbox'] = Text(chat, foreground="black", background="white", highlightcolor="white", highlightbackground="black", height = 28, width = 80)
+        self.options['chatbox'] = Text(chat, foreground="white", background="black", highlightcolor="white", highlightbackground="black", height = 28, width = 80)
         self.options['chatbox'].grid(row = 0, column = 1)
-        self.options['chatbox'].insert('1.0', 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n')
+
+        # Tags
+        self.options['chatbox'].tag_configure('yellow', foreground='yellow')
+        self.options['chatbox'].tag_configure('red', foreground='red')
+        self.options['chatbox'].tag_configure('deeppink', foreground='deeppink')
+        self.options['chatbox'].tag_configure('red', foreground='red')
+        self.options['chatbox'].tag_configure('orange', foreground='orange')
+        self.options['chatbox'].tag_configure('bold', font='bold')
+
+        self.options['chatbox'].insert('1.0', 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n', 'bold')
+
+
 
         # Connect button
         connect_button = Button(self, text = "Connect!", command = self.connect, width = 70).grid(row = 1, column = 0, columnspan = 2)
@@ -90,7 +101,7 @@ class MainWindow(Tk):
     s.settimeout(2)
 
     def connect(self):
-        self.options['chatbox'].insert('1.0', 'Attempting to connect as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()))
+        self.options['chatbox'].insert('1.0', 'Attempting to connect as %s to %s:%s....\n' % (self.options['username'].get(), self.options['host'].get(), self.options['port'].get()), 'yellow')
         global cipher
         cipher = AESCipher(self.options['key'].get()) # Set cipher
 
@@ -106,12 +117,12 @@ class MainWindow(Tk):
 
         try:
             s.connect((self.options['host'].get(), int(self.options['port'].get())))
-            self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n')
+            self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n', 'bold')
             connect_button = Button(self, text = "Quit", command = self.exit, width = 70).grid(row = 1, column = 0, columnspan = 2)
             #s.send('USER$%s' % self.options['username'].get())
             s.send(cipher.encrypt('USER$' + self.options['username'].get()))
         except Exception as e:
-            self.options['chatbox'].insert('1.0', 'Failed to connect: %s\n' % e)
+            self.options['chatbox'].insert('1.0', 'Failed to connect: %s\n' % e, 'red')
 
         running = True
 
@@ -129,11 +140,11 @@ class MainWindow(Tk):
                     except Exception:
                         pass
                     if not data:
-                        self.options['chatbox'].insert('1.0', 'Disconnected from server\n')
+                        self.options['chatbox'].insert('1.0', 'Disconnected from server\n', 'red')
                         sys.exit(1)
                     else:
                         # Show data
-                        self.options['chatbox'].insert('1.0', '%s\n' % data.strip())
+                        self.options['chatbox'].insert('1.0', '%s\n' % data.strip(), 'deeppink')
 
     def send_message(self, event):
         # Send message
@@ -146,7 +157,7 @@ class MainWindow(Tk):
 
     def host(self):
         key = hashlib.md5(gen_string()).hexdigest()
-        self.options['chatbox'].insert('1.0', '\nYour key: %s\n' % key)
+        self.options['chatbox'].insert('1.0', '\nYour key: %s\n' % key, 'yellow')
         self.options['chatbox'].insert('1.0', 'Others need this key to connect with your server to secure the connection\n')
 
         # Open server

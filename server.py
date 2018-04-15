@@ -85,9 +85,8 @@ def server(host, port):
                         # at this stage, no data means probably the connection has been broken
                         broadcast(server_socket, sock, cipher.encrypt("Client [%s] left\n") % addr[1])
 
-                # exception
                 except:
-                    broadcast(server_socket, sock, cipher.encrypt("Client [%s] left\n") % addr[1])
+                    broadcast(server_socket, sock, cipher.encrypt("Client left\n"))
                     continue
 
     server_socket.close()
