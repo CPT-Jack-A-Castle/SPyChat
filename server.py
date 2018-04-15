@@ -67,7 +67,7 @@ def server(host, port):
                     if '$' in data:
                         if data.split('$')[0] == 'USER':
                             username = data.split('$')[1]
-                            message = '%s entered the server with id %s' % (username, addr[1])
+                            message = '[SERVER] %s entered the server with id %s' % (username, addr[1])
                             broadcast(server_socket, sockfd, cipher.encrypt(message))
 
                     elif data:
