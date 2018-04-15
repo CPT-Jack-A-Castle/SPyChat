@@ -15,4 +15,4 @@ Enjoy
 ***
 
 ## Created by
-![alt text](http://leonvoerman.nl/coding/incsec_only.png)
+![alt text](http://leonvoerman.nl/coding/insec_only.png)
