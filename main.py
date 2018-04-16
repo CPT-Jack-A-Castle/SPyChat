@@ -141,13 +141,16 @@ class MainWindow(Tk):
                         sys.exit(1)
                     else:
                         # Show data
-                        self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'),data.strip()), 'yellow')
+                        if data.startswith('[SERVER]'):
+                            self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'),data.strip()), 'deeppink')
+                        else:
+                            self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'),data.strip()), 'yellow')
 
     def send_message(self, event):
         # Send message
         message = '[%s] %s ' % (self.options['username'].get(), self.options['chatbar'].get())
         #self.options['chatbox'].insert(END, '%s \n' % message) # Insert on bottom
-        self.options['chatbox'].insert('1.0', '%s\n' % message) # Insert on top
+        self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'), message)) # Insert on top
         s.send(cipher.encrypt(message)) # Send message
         #s.send(cipher.encrypt(message))
         self.options['chatbar'].delete(0, END) # Clear chatbar

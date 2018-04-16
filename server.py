@@ -7,8 +7,6 @@ if len(sys.argv) < 4:
     print('Usage: python server.py <host> <port> <key>')
     sys.exit(1)
 
-SOCKET_LIST = [] # List with connected sockets
-
 BS = 256
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 unpad = lambda s : s[0:-ord(s[-1])]
@@ -33,6 +31,8 @@ host = sys.argv[1]
 port = sys.argv[2]
 cipher = AESCipher(sys.argv[3])
 
+SOCKET_LIST = [] # List with connected sockets
+
 def server(host, port):
     running = True
 
@@ -56,8 +56,6 @@ def server(host, port):
 
                 # Sent welcome to just that client.
                 sockfd.send(cipher.encrypt('[SERVER] Welcome, you connected from %s:%s' % addr))
-                #sockfd.send(cipher.encrypt('[SERVER] There are now %i users on this server' % (len(SOCKET_LIST) - 1)))
-
             else:
                 try:
                     data = sock.recv(1024)
