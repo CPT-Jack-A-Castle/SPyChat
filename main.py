@@ -31,7 +31,7 @@ class AESCipher:
 class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
-        self.title(string = " << PyChat | Secure version >> ")
+        self.title(string = " << SPyChat | Secure version >> ")
 
         self.options = {
             'host' : StringVar(),
@@ -41,7 +41,7 @@ class MainWindow(Tk):
             'chatbar' : StringVar(),
         }
 
-        self.options['host'].set('127.0.0.1')
+        self.options['host'].set('0.0.0.0')
         self.options['port'].set(8989)
 
         settings = LabelFrame(self, text = 'Server', relief = GROOVE, labelanchor = 'nw', width = 570, height = 110)
@@ -80,8 +80,6 @@ class MainWindow(Tk):
 
         self.options['chatbox'].insert('1.0', 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n', 'bold')
 
-
-
         # Connect button
         connect_button = Button(self, text = "Connect!", command = self.connect, width = 70).grid(row = 1, column = 0, columnspan = 2)
 
@@ -117,9 +115,8 @@ class MainWindow(Tk):
 
         try:
             s.connect((self.options['host'].get(), int(self.options['port'].get())))
-            self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n', 'bold')
+            #self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n', 'bold')
             connect_button = Button(self, text = "Quit", command = self.exit, width = 70).grid(row = 1, column = 0, columnspan = 2)
-            #s.send('USER$%s' % self.options['username'].get())
             s.send(cipher.encrypt('USER$' + self.options['username'].get()))
         except Exception as e:
             self.options['chatbox'].insert('1.0', 'Failed to connect: %s\n' % e, 'red')

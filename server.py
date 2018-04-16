@@ -46,8 +46,6 @@ def server(host, port):
     #print("Chat server started on port %i" % int(port))
 
     while running:
-        # get the list sockets which are ready to be read through select
-        # 4th arg, time_out  = 0 : poll and never block
         ready_to_read,ready_to_write,in_error = select.select(SOCKET_LIST,[],[],0)
 
         for sock in ready_to_read:
@@ -55,6 +53,10 @@ def server(host, port):
             if sock == server_socket:
                 sockfd, addr = server_socket.accept()
                 SOCKET_LIST.append(sockfd)
+
+                # Sent welcome to just that client.
+                sockfd.send(cipher.encrypt('[SERVER] Welcome, you connected from %s:%s' % addr))
+                #sockfd.send(cipher.encrypt('[SERVER] There are now %i users on this server' % (len(SOCKET_LIST) - 1)))
 
             else:
                 try:
@@ -73,8 +75,7 @@ def server(host, port):
                     elif data:
                         data = data.strip()
                         # Send data to all clients
-                        #message = '\r[%s] %s' % (time.strftime('%X'), data)
-                        message = '\r%s' % data
+                        message = '\r[%s] %s' % (addr[1], data)
                         broadcast(server_socket, sock, cipher.encrypt(message))
 
                     else:
@@ -96,9 +97,9 @@ def broadcast(server_socket, sock, message):
     for socket in SOCKET_LIST:
         # send the message only to peer
         if socket != server_socket and socket != sock :
-            try :
+            try:
                 socket.send(message)
-            except :
+            except:
                 # broken socket connection
                 socket.close()
                 # broken socket, remove it
