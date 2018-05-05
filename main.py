@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os, sys, random, string, hashlib, subprocess, signal, socket, select, threading, time, base64, time
 from Tkinter import *
+from ttk import *
 
 try:
     from Crypto import Random
@@ -32,6 +33,9 @@ class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.title(string = " << SPyChat | Secure version >> ")
+        self.resizable(0,0)
+        self.style = Style()
+        self.style.theme_use("clam")
 
         self.options = {
             'host' : StringVar(),
@@ -62,7 +66,7 @@ class MainWindow(Tk):
 
         # Key entry
         Label(settings, text = 'Key:').grid(row = 3, column = 1)
-        key_entry = Entry(settings, textvariable = self.options['key'], show = '*').grid(row = 3, column = 2, columnspan = 2,)
+        key_entry = Entry(settings, textvariable = self.options['key'], show = '*').grid(row = 3, column = 2, columnspan = 2)
 
         # Chat Frame
         chat = LabelFrame(self, text = 'Chat', relief = GROOVE)
@@ -81,15 +85,15 @@ class MainWindow(Tk):
         self.options['chatbox'].insert('1.0', 'Set Host and port, then click Connect to enter a server.\nOr click Host to host a chat server on the given port\n', 'bold')
 
         # Connect button
-        connect_button = Button(self, text = "Connect!", command = self.connect, width = 70).grid(row = 1, column = 0, columnspan = 2)
+        connect_button = Button(self, text = "Connect!", command = self.connect, width = 68).grid(row = 1, column = 0, columnspan = 2)
 
         # Host button
-        host_server_button = Button(self, text = "Host", command = self.host, width = 70).grid(row = 2, column = 0, columnspan = 2)
+        host_server_button = Button(self, text = "Host", command = self.host, width = 68).grid(row = 2, column = 0, columnspan = 2)
 
         # Send text entry
         self.options['chatbar'] = Entry(chat, textvariable = self.options['chatbar'], width = 70)
         self.options['chatbar'].grid(row = 1, column = 0, columnspan = 4)
-        submit = Button(self, text = "Submit", command = self.send_message, width = 70).grid(row = 7, column = 0, columnspan = 2)
+        submit = Button(self, text = "Submit", command = self.send_message, width = 68).grid(row = 7, column = 0, columnspan = 2)
         self.options['chatbar'].bind('<Return>', self.send_message) # Send message with the Return key (aka Enter)
         self.options['chatbar'].focus()
 
@@ -112,7 +116,6 @@ class MainWindow(Tk):
         sys.exit(0)
 
     def keep_alive(self):
-
         try:
             s.connect((self.options['host'].get(), int(self.options['port'].get())))
             #self.options['chatbox'].insert('1.0', 'Connected, Welcome!\n', 'bold')
@@ -136,6 +139,7 @@ class MainWindow(Tk):
                         data = cipher.decrypt(data)
                     except Exception:
                         pass
+
                     if not data:
                         self.options['chatbox'].insert('1.0', 'Disconnected from server\n', 'red')
                         sys.exit(1)
@@ -143,16 +147,15 @@ class MainWindow(Tk):
                         # Show data
                         if data.startswith('[SERVER]'):
                             self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'),data.strip()), 'deeppink')
+
                         else:
                             self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'),data.strip()), 'yellow')
 
     def send_message(self, event):
         # Send message
         message = '[%s] %s ' % (self.options['username'].get(), self.options['chatbar'].get())
-        #self.options['chatbox'].insert(END, '%s \n' % message) # Insert on bottom
         self.options['chatbox'].insert('1.0', '[%s] %s\n' % (time.strftime('%X'), message)) # Insert on top
         s.send(cipher.encrypt(message)) # Send message
-        #s.send(cipher.encrypt(message))
         self.options['chatbar'].delete(0, END) # Clear chatbar
 
     def host(self):
